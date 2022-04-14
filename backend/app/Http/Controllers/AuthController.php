@@ -6,5 +6,10 @@ use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
-    //
+    public function login(){
+        return "Login";
+    }
+    public function registration(){
+        return "Registration";
+    }
 }
