@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -18,17 +19,13 @@ use App\Models\User;
 |
 */
 
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [UserController::class, 'login']);
 
-Route::get('/register', function(){
-    
-    $user = User::create(['username' => 'myusername',
-    'fullname' => 'myfullname',
-    'email' => 'myemail',
-    'password' => 'mypassword']);
 
-    return $user;
-});
+Route::post('/register_user', [UserController::class, 'store']);
+
+Route::get('/all_users', [UserController::class, 'index']);
+
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
