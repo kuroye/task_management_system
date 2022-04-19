@@ -20,12 +20,12 @@ class AuthController extends Controller
     }
     public function register(Request $request){
         $username = $request->input('username');
-        $name = $request->input('name');
-        $lastname = $request->input('lastname');
+        $fullname = $request->input('fullname');
         $email = $request->input('email');
-        $image_path = $request->input('image_path');
-        $password = $request->input('password');
-        
+        $avatar = $request->input('avatar');
+        $password = $request->input('password'); 
+
+
 
         return response()->json([
             'message' => 'Post successfully',
