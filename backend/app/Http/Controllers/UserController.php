@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use App\Exceptions\InvalidLogin;
 use Illuminate\Http\Request;
 use App\Models\User; 
 
@@ -27,7 +30,15 @@ class UserController extends Controller
     public function store(Request $request)
     {
         //create a user
-        return User::create($request->all());
+        $user = $request->validate([
+            'username' => 'required|unique:users|min:3|max:20|string',
+            'email' => 'required|unique:users|email',
+            'password' => 'required|confirmed|min:6|string'
+        ]);
+
+        $user['password'] = Hash::make($user['password']);
+        
+        return User::create($user);
     }
 
     /**
@@ -72,14 +83,21 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        $username = $request->input('username');
-        $password = $request->input('password');
+        $data = $request -> validate([
+            'username' => 'required|string',
+            'password' => 'required|string',
+        ]);
 
-        if ($password == NULL)
+        if(!Auth::attempt($data))
         {
-            $returnData = 'password must not be null';
-            return $returnData;
+            throw new InvalidLogin();
+        }else
+        {
+            $request->session()->regenerate();
+            return response()->json(['message'=>'login successful'],
+            200);
         }
-        return $username;
+
     }
+
 }
