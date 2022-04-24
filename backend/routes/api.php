@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\GroupController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -19,12 +20,18 @@ use App\Models\User;
 |
 */
 
+// login/register
 Route::post('/login', [UserController::class, 'login']);
+Route::post('/register', [UserController::class, 'store']);
 
+//user
+Route::get('/users', [UserController::class, 'index']);
+Route::get('/users/{id}', [UserController::class, 'show']);
 
-Route::post('/register_user', [UserController::class, 'store']);
-
-Route::get('/all_users', [UserController::class, 'index']);
+//group
+Route::get('/groups', [GroupController::class, 'index']);
+Route::get('/groups/{id}', [GroupController::class, 'show']);
+Route::post('/groups', [GroupController::class, 'store']);
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
