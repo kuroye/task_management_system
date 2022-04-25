@@ -1,2 +1,1 @@
-export { default as logo } from '@/assets/img/favicon.svg';
-
+export { default as logo } from '@/assets/img/logo.png';

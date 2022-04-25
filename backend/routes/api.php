@@ -31,8 +31,12 @@ Route::get('/users/{id}', [UserController::class, 'show']);
 //group
 Route::get('/groups', [GroupController::class, 'index']);
 Route::get('/groups/{id}', [GroupController::class, 'show']);
-Route::post('/groups', [GroupController::class, 'store']);
 
+// Proteted routes
+Route::group(['middleware' => ['auth:sanctum']], function() {
+    Route::post('/logout', [UserController::class, 'logout']);
+    Route::post('/groups', [GroupController::class, 'store']);
+});
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();

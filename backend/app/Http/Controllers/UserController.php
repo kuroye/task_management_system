@@ -4,82 +4,54 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Contracts\Encryption\DecryptException;
+
 use App\Exceptions\InvalidLogin;
 use Illuminate\Http\Request;
 use App\Models\User; 
+use Carbon\Carbon;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
+
     public function index()
     {
         //get all user
         return User::all();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+ 
     public function store(Request $request)
     {
         //create a user
-        $user = $request->validate([
+        $fields = $request->validate([
             'username' => 'required|unique:users|min:3|max:20|string',
             'email' => 'required|unique:users|email',
             'password' => 'required|confirmed|min:6|string'
         ]);
 
-        $user['password'] = Hash::make($user['password']);
         
-        return User::create($user);
+        $user = User::create([
+            'username' => $fields['username'],
+            'email' => $fields['email'],
+            'password' => bcrypt($fields['password'])
+        ]);
+
+        $current_time = Carbon::now();
+
+        // create a token by encrypt data
+        $token = Crypt::encryptString($user['id'].','.$current_time);
+
+        $response = [
+            'user' => $user,
+            'token' => $token
+        ];
+
+        return response($response, 201);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //show a user
-        return User::find($id);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //update a user
-        $user = User::find($id);
-        $user->update($request->all());
-        return $user;
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //delete a user
-        return User::destroy($id);
-    }
-
+    
 
     public function login(Request $request)
     {
@@ -88,16 +60,72 @@ class UserController extends Controller
             'password' => 'required|string',
         ]);
 
+        
+
         if(!Auth::attempt($data))
         {
             throw new InvalidLogin();
-        }else
-        {
-            $request->session()->regenerate();
-            return response()->json(['message'=>'login successful'],
-            200);
         }
 
+        $current_time = Carbon::now();
+        $user = Auth::user();
+    
+        $token = Crypt::encryptString($user['id'].','.$current_time);
+
+       
+        //verify token
+        // if(!$token)
+        // {
+        //     return response()->json(['message'=>'invalid token'],
+        //     401);
+        // }
+
+        // $decrypted_token = Crypt::decryptString($token);
+    
+
+        
+        
+        // list($id, $time) = explode(',', $decrypted_token);
+        // return $id;
+       
+
+        return response()->json(['message'=>'login successful',
+                                    'user'=>$user,
+                                    'token'=>$token],
+            200);
+        
+
+    }
+
+    public function logout(Request $request)
+    {
+
+        return [
+            'message' => 'Logged out'
+        ];
+    }
+
+
+    public function show($id)
+    {
+        //show a user
+        return User::find($id);
+    }
+
+    
+    public function update(Request $request, $id)
+    {
+        //update a user
+        $user = User::find($id);
+        $user->update($request->all());
+        return $user;
+    }
+
+   
+    public function destroy($id)
+    {
+        //delete a user
+        return User::destroy($id);
     }
 
 }

@@ -6,7 +6,16 @@ import { atom } from 'recoil';
 import { getLatestState, localStorage } from '@/utils';
 
 export const defaultUserState = {
+	id: null,
+	email: '',
 	username: '',
+	fullname: '',
+
+	level: null,
+	xp: null,
+
+	createTime: null,
+	updateTime: null,
 
 	// API 访问令牌
 	token: '',

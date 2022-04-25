@@ -3,7 +3,7 @@ import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import { useRecoilValue } from 'recoil';
 import { userAtom } from '@/store';
 
-import { useEventListener, useCreation, useMount } from 'ahooks';
+import { useEventListener, useCreation } from 'ahooks';
 import { localStorage } from '@/utils';
 
 import { ConfigProvider as AntdConfigProvider } from 'antd';
@@ -20,14 +20,28 @@ export default function App() {
 
 	const routes = useCreation(
 		() => [
-			{ path: '/', component: lazy(() => import('@/pages/LandingPage')) },
-			{ path: '/login', component: lazy(() => import('@/pages/LoginPage')) },
 			{
+				key: '/',
+				path: '/',
+				exact: true,
+				component: lazy(() => import('@/pages/LandingPage')),
+			},
+			{
+				key: '/login',
+				path: '/login',
+				exact: true,
+				component: lazy(() => import('@/pages/LoginPage')),
+			},
+			{
+				key: '/register',
 				path: '/register',
+				exact: true,
 				component: lazy(() => import('@/pages/RegisterPage')),
 			},
 			{
+				key: '/user',
 				path: '/user',
+				exact: true,
 				component: lazy(() => import('@/pages/UserProfilePage')),
 			},
 		],
@@ -39,8 +53,8 @@ export default function App() {
 			<BrowserRouter>
 				<Switch>
 					<Suspense fallback={<CommonLoading />}>
-						{routes.map(({ path, component }) => (
-							<Route key={path} exact path={path} component={component} />
+						{routes.map(routeConfig => (
+							<Route {...routeConfig} />
 						))}
 					</Suspense>
 				</Switch>

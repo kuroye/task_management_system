@@ -11,6 +11,6 @@ class InvalidLogin extends Exception
     {
         return Response([
             'message' => 'invalid login details',
-        ], 401);
+        ], 400);
     }
 }

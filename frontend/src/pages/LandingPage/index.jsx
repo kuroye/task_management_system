@@ -1,5 +1,21 @@
 import React from 'react';
 
+import {
+	UserOutlined,
+	LaptopOutlined,
+	NotificationOutlined,
+} from '@ant-design/icons';
+import { Header, Content } from '@/components';
+import { LandingPageStyledBox } from './style';
+
 export default function LandingPage() {
-	return <div>LandingPage</div>;
+	return (
+		<LandingPageStyledBox>
+			<Header />
+
+			<Content>
+				<div className="">Landing Page</div>
+			</Content>
+		</LandingPageStyledBox>
+	);
 }

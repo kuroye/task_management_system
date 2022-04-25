@@ -22,9 +22,7 @@ return new class extends Migration
             $table->date('birthday')->nullable();
             $table->integer('level')->default(1);
             $table->integer('xp')->default(0);
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            $table->rememberToken();
             $table->timestamps();
         });
     }
