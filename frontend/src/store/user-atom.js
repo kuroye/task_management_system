@@ -10,6 +10,7 @@ export const defaultUserState = {
 	email: '',
 	username: '',
 	fullname: '',
+	avatar: null,
 
 	level: null,
 	xp: null,

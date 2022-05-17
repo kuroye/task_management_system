@@ -6,22 +6,38 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Contracts\Encryption\DecryptException;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\File;
+use App\Models\Enrollment;
 
 use App\Exceptions\InvalidLogin;
 use Illuminate\Http\Request;
-use App\Models\User; 
+use App\Models\User;
 use Carbon\Carbon;
 
 class UserController extends Controller
 {
-
-    public function index()
+    public function all_users()
     {
-        //get all user
-        return User::all();
-    }
 
- 
+        $users =  User::all();
+
+        $user_arr = [];
+        foreach($users as $user)
+        {
+            $groups_id =  Enrollment::where('user_id', $user['id'])->get('group_id');
+
+            $func = function ($obj)
+            {
+                return $obj['group_id'];
+            };
+            $user['enrolled_groups'] = array_map($func, $groups_id->toArray());
+           
+        }
+        
+        return $users;
+        
+    }
     public function store(Request $request)
     {
         //create a user
@@ -31,17 +47,23 @@ class UserController extends Controller
             'password' => 'required|confirmed|min:6|string'
         ]);
 
-        
+
         $user = User::create([
             'username' => $fields['username'],
             'email' => $fields['email'],
             'password' => bcrypt($fields['password'])
         ]);
 
+        
         $current_time = Carbon::now();
 
         // create a token by encrypt data
-        $token = Crypt::encryptString($user['id'].','.$current_time);
+        $token = Crypt::encryptString($user['id'] . ',' . $current_time);
+
+        $user = User::find($user['id']);
+        
+        $max_xp = pow($user['level'], 2) * 100;
+        $user['max_xp'] = $max_xp;
 
         $response = [
             'user' => $user,
@@ -51,50 +73,37 @@ class UserController extends Controller
         return response($response, 201);
     }
 
-    
+
 
     public function login(Request $request)
     {
-        $data = $request -> validate([
+        $data = $request->validate([
             'username' => 'required|string',
             'password' => 'required|string',
         ]);
 
-        
 
-        if(!Auth::attempt($data))
-        {
+
+        if (!Auth::attempt($data)) {
             throw new InvalidLogin();
         }
 
         $current_time = Carbon::now();
         $user = Auth::user();
-    
-        $token = Crypt::encryptString($user['id'].','.$current_time);
 
-       
-        //verify token
-        // if(!$token)
-        // {
-        //     return response()->json(['message'=>'invalid token'],
-        //     401);
-        // }
+        $token = Crypt::encryptString($user['id'] . ',' . $current_time);
 
-        // $decrypted_token = Crypt::decryptString($token);
-    
+        $max_xp = pow($user['level'], 2) * 100;
+        $user['max_xp'] = $max_xp;
 
-        
-        
-        // list($id, $time) = explode(',', $decrypted_token);
-        // return $id;
-       
-
-        return response()->json(['message'=>'login successful',
-                                    'user'=>$user,
-                                    'token'=>$token],
-            200);
-        
-
+        return response()->json(
+            [
+                'message' => 'login successful',
+                'user' => $user,
+                'token' => $token
+            ],
+            200
+        );
     }
 
     public function logout(Request $request)
@@ -106,26 +115,117 @@ class UserController extends Controller
     }
 
 
-    public function show($id)
+    public function show(Request $request)
     {
-        //show a user
-        return User::find($id);
-    }
+        $object = new TokenController;
+        $token = $object->get_token($request);
+        $decrypted_token = Crypt::decryptString($token);
 
-    
-    public function update(Request $request, $id)
-    {
-        //update a user
+        list($id, $time) = explode(',', $decrypted_token);
+        $id = intval($id);
+
         $user = User::find($id);
-        $user->update($request->all());
-        return $user;
+
+        return response()->json($user);
+
     }
 
-   
-    public function destroy($id)
+
+    public function update(Request $request)
     {
-        //delete a user
-        return User::destroy($id);
+        $object = new TokenController;
+        $token = $object->get_token($request);
+        $decrypted_token = Crypt::decryptString($token);
+
+        list($id, $time) = explode(',', $decrypted_token);
+        $id = intval($id);
+
+        $user = User::find($id);
+
+        if ($user['username'] == $request->input('username')) {
+            $fields = $request->validate([
+                // 'username' => 'min:3|max:20|string|unique:users',
+                'fullname' => 'max:100|string'
+            ]);
+
+            $user->update([
+                'fullname' => $fields['fullname']
+            ]);
+        } else {
+            $fields = $request->validate([
+                'username' => 'min:3|max:20|string|unique:users',
+                'fullname' => 'max:100|string'
+            ]);
+
+            $user->update([
+                'username' => $fields['username'],
+                'fullname' => $fields['fullname']
+            ]);
+        }
+
+
+        return response()->json([
+            'message' => 'update successful',
+            'user' => $user
+        ], 200);
     }
 
+
+    public function image(Request $request)
+    {
+        $object = new TokenController;
+        $token = $object->get_token($request);
+        $decrypted_token = Crypt::decryptString($token);
+
+        list($id, $time) = explode(',', $decrypted_token);
+        $id = intval($id);
+
+        $user = User::find($id);
+
+        if($user['avatar'])
+        {
+            $path = '/images/'.$user['avatar'];
+            if(File::exists($path))
+            {
+                File::delete($path);
+            }
+        }
+
+        $request->validate([
+            'avatar' => 'mimes:jpg,png,jpge'
+        ]);
+
+        $newImageName = time() .$user['id']. '-' . $request->avatar->extension();
+
+        $request->avatar->move(public_path('images'), $newImageName);
+
+
+        $host = $request->getSchemeAndHttpHost();
+        $pathToFile = $host . '/images/' . $newImageName;
+
+        $user->update([
+            'avatar' => $pathToFile
+        ]);
+
+        // $host = $request->getSchemeAndHttpHost();
+        // $pathToFile = $host . '/images/' . $user['avatar'];
+
+        return response()->json(
+            ['avatar' => $pathToFile]
+        );
+    }
+
+    public function get_user(Request $request)
+    {
+        $object = new TokenController;
+        $token = $object->get_token($request);
+        $decrypted_token = Crypt::decryptString($token);
+
+        list($id, $time) = explode(',', $decrypted_token);
+        $id = intval($id);
+
+        $user = User::find($id);
+
+        return response()->json($user);
+    }
 }

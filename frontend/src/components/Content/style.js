@@ -9,4 +9,5 @@ export const ContentStyledBox = styled(Content)`
 	${commonLayoutStyle}
 	padding-top: 20px !important;
 	height: calc(100% - 64px);
+	overflow: hidden auto;
 `;

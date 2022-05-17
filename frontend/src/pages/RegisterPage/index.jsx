@@ -5,6 +5,7 @@ import { userAtom } from '@/store';
 
 import { useRequest } from 'ahooks';
 import { reqRegister } from '@/services/api/auth-api';
+import { localStorage } from '@/utils';
 
 import { Form, Input, Button, Card, message as antdMessage } from 'antd';
 import { RegisterPageStyledBox } from './style';
@@ -30,6 +31,7 @@ export default function RegisterPage() {
 						email,
 						username,
 						fullname,
+						avatar,
 						level,
 						xp,
 						created_at: createTime,
@@ -38,11 +40,12 @@ export default function RegisterPage() {
 				}) => {
 					antdMessage.success('resgister successful');
 
-					setUser({
+					let userData = {
 						id,
 						email,
 						username,
 						fullname,
+						avatar,
 
 						level,
 						xp,
@@ -51,7 +54,10 @@ export default function RegisterPage() {
 						updateTime,
 
 						token,
-					});
+					};
+
+					localStorage.set('user', userData);
+					setUser(userData);
 					history.push('/user');
 				},
 			)

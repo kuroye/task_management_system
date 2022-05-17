@@ -1,7 +1,7 @@
 import { css } from 'styled-components';
 
 export default css`
-	height: 100vh;
+	height: 100%;
 
 	display: flex;
 	justify-content: center;

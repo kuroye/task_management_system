@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->string('description')->nullable();
+            $table->integer('difficulty')->default(1);
             $table->integer('xp')->default(0);
             $table->foreignId('group_id')->constrained('groups');
             $table->timestamps();

@@ -13,7 +13,7 @@ apiServerInstance.interceptors.request.use(config => {
 	const { token } = localStorage.get('user');
 
 	if (token && config.headers) {
-		config.headers['X-AUTH-TOKEN'] = token;
+		config.headers['Authorization'] = token;
 	}
 
 	return config;

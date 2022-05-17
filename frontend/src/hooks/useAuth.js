@@ -1,7 +1,7 @@
 import { useHistory } from 'react-router-dom';
-import { useMount } from 'hooks';
+import { useMount } from 'ahooks';
 
-export default function useAuth({ token, beforeReplace }) {
+export default function useAuth(token, beforeReplace) {
 	const history = useHistory();
 
 	useMount(() => {

@@ -34,7 +34,7 @@ const mobileHeaderStyle = css`
 		${commonLayoutStyle}
 		padding-top: 20px !important;
 
-		background: rgba(200, 200, 200, 0.85);
+		background: #fff;
 
 		display: flex;
 		flex-direction: column;

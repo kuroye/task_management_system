@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { memo } from 'react';
 
 import { ContentStyledBox } from './style';
 
-export default function Content({ children }) {
+export default memo(function Content({ children }) {
 	return <ContentStyledBox>{children}</ContentStyledBox>;
-}
+});

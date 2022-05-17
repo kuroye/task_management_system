@@ -2,67 +2,41 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Enrollment;
 use Illuminate\Http\Request;
-use App\Models\Group; 
+use App\Models\Group;
+use Illuminate\Support\Facades\Crypt;
+
 
 class GroupController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //get all groups
-        return Group::all();
-    }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
+        $object = new TokenController;
+        $token = $object->get_token($request);
+        $decrypted_token = Crypt::decryptString($token);
+
+        list($id, $time) = explode(',', $decrypted_token);
+        $id = intval($id);
+        
         //create a group
-        return Group::create($request->all());
-    }
+        $fields = $request->validate([
+            'name' => 'required|max:50|string',
+            'description' => 'max:200|string'
+        ]);
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-        return Group::find($id);
+        $group = Group::create([
+            'name' => $fields['name'],
+            'description' => $fields['description'],
+            'creator' => $id
+        ]);
 
-    }
+        Enrollment::create([
+            'group_id' => $group['id'],
+            'user_id' => $group['creator']
+        ]);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
+        return response()->json($group);
     }
 }

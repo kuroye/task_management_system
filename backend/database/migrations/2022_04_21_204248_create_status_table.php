@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('mark')->nullable();
             $table->boolean('finished')->default(0);
             $table->string('file_path')->nullable();
+            $table->boolean('submitted')->default(0);
             $table->foreignId('task_id')->constrained('tasks');
             $table->foreignId('user_id')->constrained('users');
             $table->timestamps();
